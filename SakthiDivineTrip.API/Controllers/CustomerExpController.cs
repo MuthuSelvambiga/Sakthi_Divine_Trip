@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using SakthiDivineTrip.API.DTO;
 using SakthiDivineTrip.API.Models;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Hosting;
 
 namespace SakthiDivineTrip.API.Controllers
 {
@@ -13,9 +14,14 @@ namespace SakthiDivineTrip.API.Controllers
     {
         private readonly ApplicationDbContext _applicationDbContext;
 
-        public CustomerExpController(ApplicationDbContext applicationDbContext)
+        private readonly IWebHostEnvironment _environment;
+
+        public CustomerExpController(
+            ApplicationDbContext applicationDbContext,
+            IWebHostEnvironment environment)
         {
             _applicationDbContext = applicationDbContext;
+            _environment = environment;
         }
         [HttpGet("published")]
         public async Task<IActionResult> GetPublishedExperiences()
@@ -31,6 +37,27 @@ namespace SakthiDivineTrip.API.Controllers
         public async Task<IActionResult> GetExperiences()
         {
             var experiences = await _applicationDbContext.CustomerExperiences
+                .Include(x => x.Tour)
+                .OrderByDescending(x => x.CreatedOn)
+                .Select(x => new
+                {
+                    x.ExperienceId,
+                    x.TourId,
+                    TourName = x.Tour != null ? x.Tour.TourName : "General Experience",
+                    x.CustomerName,
+                    x.ExperienceTitle,
+                    x.ExperienceText,
+                    x.Rating,
+                    x.ExperienceDate,
+                    x.PhotoPath,
+                    x.VideoPath,
+                    x.IsPublishedWithPermission,
+                    x.IsFeatured,
+                    x.DisplayOrder,
+                    x.IsActive,
+                    x.CreatedOn,
+                    x.UpdatedOn
+                })
                 .ToListAsync();
 
             return Ok(experiences);
@@ -50,8 +77,34 @@ namespace SakthiDivineTrip.API.Controllers
             return Ok(experience);
         }
         [HttpPost]
-        public async Task<IActionResult> CreateExperience(CustomerExpRequest exprequest)
+        [HttpPost]
+        public async Task<IActionResult> CreateExperience(
+    [FromForm] CustomerExpRequest exprequest)
         {
+            string? photoPath = null;
+
+            if (exprequest.Photo != null && exprequest.Photo.Length > 0)
+            {
+                var uploadFolder = Path.Combine(
+                    _environment.WebRootPath,
+                    "images",
+                    "customer-experiences"
+                );
+
+                Directory.CreateDirectory(uploadFolder);
+
+                var fileName = $"{Guid.NewGuid()}{Path.GetExtension(exprequest.Photo.FileName)}";
+
+                var filePath = Path.Combine(uploadFolder, fileName);
+
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await exprequest.Photo.CopyToAsync(stream);
+                }
+
+                photoPath = $"/images/customer-experiences/{fileName}";
+            }
+
             var experience = new CustomerExperience
             {
                 TourId = exprequest.TourId,
@@ -60,10 +113,10 @@ namespace SakthiDivineTrip.API.Controllers
                 ExperienceText = exprequest.ExperienceText,
                 Rating = exprequest.Rating,
                 ExperienceDate = exprequest.ExperienceDate,
-                PhotoPath = exprequest.PhotoPath,
-                VideoPath = exprequest.VideoPath,
 
-                // Server-managed fields
+                PhotoPath = photoPath,
+                VideoPath = null,
+
                 IsPublishedWithPermission = false,
                 IsFeatured = false,
                 DisplayOrder = 0,
@@ -76,6 +129,59 @@ namespace SakthiDivineTrip.API.Controllers
             await _applicationDbContext.SaveChangesAsync();
 
             return Ok(experience);
+        }
+        [HttpPost("upload-photo")]
+        public async Task<IActionResult> UploadPhoto(IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+            {
+                return BadRequest("Please select a photo.");
+            }
+
+            var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".webp" };
+
+            var extension = Path.GetExtension(file.FileName)
+                .ToLowerInvariant();
+
+            if (!allowedExtensions.Contains(extension))
+            {
+                return BadRequest(
+                    "Only JPG, JPEG, PNG and WEBP images are allowed."
+                );
+            }
+
+            var uploadsFolder = Path.Combine(
+                Directory.GetCurrentDirectory(),
+                "wwwroot",
+                "images",
+                "customer-experiences"
+            );
+
+            if (!Directory.Exists(uploadsFolder))
+            {
+                Directory.CreateDirectory(uploadsFolder);
+            }
+
+            var fileName = $"{Guid.NewGuid()}{extension}";
+
+            var filePath = Path.Combine(
+                uploadsFolder,
+                fileName
+            );
+
+            using (var stream = new FileStream(
+                filePath,
+                FileMode.Create))
+            {
+                await file.CopyToAsync(stream);
+            }
+
+            var photoPath = $"/images/customer-experiences/{fileName}";
+
+            return Ok(new
+            {
+                photoPath
+            });
         }
 
         [HttpPatch("{id}")]

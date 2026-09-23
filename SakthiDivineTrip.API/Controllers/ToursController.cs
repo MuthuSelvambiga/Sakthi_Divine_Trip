@@ -103,6 +103,43 @@ namespace SakthiDivineTrip.API.Controllers
                     tour);
 
         }
+        [HttpPost("upload-image")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> UploadImage(IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+                return BadRequest("Please select an image.");
+
+            var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".webp" };
+            var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
+
+            if (!allowedExtensions.Contains(extension))
+                return BadRequest("Only JPG, JPEG, PNG and WEBP images are allowed.");
+
+            var uploadsFolder = Path.Combine(
+                Directory.GetCurrentDirectory(),
+                "wwwroot",
+                "images"
+            );
+
+            if (!Directory.Exists(uploadsFolder))
+                Directory.CreateDirectory(uploadsFolder);
+
+            var fileName = $"{Guid.NewGuid()}{extension}";
+            var filePath = Path.Combine(uploadsFolder, fileName);
+
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await file.CopyToAsync(stream);
+            }
+
+            var imagePath = $"/images/{fileName}";
+
+            return Ok(new
+            {
+                imagePath
+            });
+        }
         [HttpPatch("{Id}")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> UpdateTours(int Id, TourUpdateRequest tourRequest)
@@ -164,6 +201,7 @@ namespace SakthiDivineTrip.API.Controllers
             {
                 updatedTour.IsEarlyBirdActive = tourRequest.IsEarlyBirdActive.Value;
             }
+            updatedTour.UpdatedOn = DateTime.UtcNow;
 
             await _applicationDbContext.SaveChangesAsync();
 
@@ -192,6 +230,30 @@ namespace SakthiDivineTrip.API.Controllers
 
             return Ok("Tour deactivated  Scuccessfully");
 
+        }
+        [HttpPatch("{id}/activate")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> ActivateTour(int id)
+        {
+            var tour = await _applicationDbContext.Tours
+                .FirstOrDefaultAsync(x => x.TourId == id);
+
+            if (tour == null)
+            {
+                return NotFound("Tour not found");
+            }
+
+            if (tour.IsActive)
+            {
+                return BadRequest("Tour is already active.");
+            }
+
+            tour.IsActive = true;
+            tour.UpdatedOn = DateTime.UtcNow;
+
+            await _applicationDbContext.SaveChangesAsync();
+
+            return Ok("Tour activated successfully");
         }
 
         [HttpGet("{id}/details")]

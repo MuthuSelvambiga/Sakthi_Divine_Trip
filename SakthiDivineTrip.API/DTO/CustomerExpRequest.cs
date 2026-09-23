@@ -1,4 +1,6 @@
-﻿namespace SakthiDivineTrip.API.DTO
+﻿using Microsoft.AspNetCore.Http;
+
+namespace SakthiDivineTrip.API.DTO
 {
     public class CustomerExpRequest
     {
@@ -14,8 +16,7 @@
 
         public DateOnly? ExperienceDate { get; set; }
 
-        public string? PhotoPath { get; set; }
-
-        public string? VideoPath { get; set; }
+        // Optional customer photo
+        public IFormFile? Photo { get; set; }
     }
 }

@@ -8,6 +8,7 @@ public partial class Booking
     public int BookingId { get; set; }
 
     public int TourId { get; set; }
+    public virtual Tour Tour { get; set; } = null!;
 
     public string CustomerName { get; set; } = null!;
 

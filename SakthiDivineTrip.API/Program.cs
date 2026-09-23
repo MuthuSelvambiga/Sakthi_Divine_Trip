@@ -67,10 +67,13 @@ builder.Services.AddAuthorization();
 builder.Services.AddScoped<JWTService>();
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowReactApp", policy =>
+    options.AddPolicy("AllowReactApps", policy =>
     {
         policy
-            .WithOrigins("http://localhost:5173")
+            .WithOrigins(
+                "http://localhost:5173",
+                "http://localhost:5174"
+            )
             .AllowAnyHeader()
             .AllowAnyMethod();
     });
@@ -85,7 +88,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
-app.UseCors("AllowReactApp");
+app.UseCors("AllowReactApps");
 app.UseAuthentication();
 
 app.UseMiddleware<GlobalExceptionMiddleware>();

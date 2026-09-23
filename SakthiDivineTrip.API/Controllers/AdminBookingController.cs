@@ -20,9 +20,11 @@ namespace SakthiDivineTrip.API.Controllers
         // GET: api/AdminBooking
         // GET: api/AdminBooking?status=Pending
         [HttpGet]
+        [HttpGet]
         public async Task<IActionResult> GetAllBookings(string? status)
         {
             var query = _applicationDbContext.Bookings
+                .Include(x => x.Tour)
                 .AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(status))
@@ -33,6 +35,25 @@ namespace SakthiDivineTrip.API.Controllers
 
             var bookings = await query
                 .OrderByDescending(x => x.BookingDate)
+                .Select(x => new
+                {
+                    x.BookingId,
+                    x.CustomerName,
+                    x.CustomerPhone,
+                    x.TourId,
+                    TourName = x.Tour.TourName,
+                    x.NumberOfSeats,
+                    x.TotalAmount,
+                    x.BookingStatus,
+                    x.BookingDate,
+                    x.CancelledOn,
+                    x.CancellationReason,
+                    x.RefundAmount,
+                    x.CreatedOn,
+                    x.UpdatedOn,
+                    x.EarlyBirdSeats,
+                    x.RegularSeats
+                })
                 .ToListAsync();
 
             return Ok(bookings);
