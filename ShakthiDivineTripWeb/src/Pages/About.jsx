@@ -135,18 +135,7 @@ function About() {
 
             {/* Closing CTA */}
 
-            <section className="about-cta">
 
-                <h2>
-                    Your Next Divine Journey Awaits
-                </h2>
-
-                <p>
-                    Travel with faith, discover sacred places and create
-                    memories that stay with you.
-                </p>
-
-            </section>
 
         </main>
     );

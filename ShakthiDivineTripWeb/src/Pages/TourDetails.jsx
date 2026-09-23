@@ -177,7 +177,7 @@ function TourDetails() {
                         <div className="tour-details-actions">
                             <a
                                 className="tour-whatsapp-button"
-                                href={`https://wa.me/?text=${encodeURIComponent(
+                                href={`https://wa.me/919566009530?text=${encodeURIComponent(
                                     `Hi, I am interested in the ${tour.tourName} tour.`
                                 )}`}
                                 target="_blank"

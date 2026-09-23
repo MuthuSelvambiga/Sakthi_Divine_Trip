@@ -31,3 +31,14 @@ export const getPastTours = async () => {
 
     return response.json();
 };
+export const getPublishedExperiences = async () => {
+    const response = await fetch(
+        `${API_BASE_URL}/CustomerExp/published`
+    );
+
+    if (!response.ok) {
+        throw new Error("Failed to load customer experiences.");
+    }
+
+    return response.json();
+};

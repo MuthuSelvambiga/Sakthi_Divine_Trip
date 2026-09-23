@@ -8,6 +8,7 @@ import Gallery from "./pages/Gallery";
 import Header from "./Components/Header";
 import Hero from "./Components/Hero";
 import TourCard from "./Components/TourCard";
+import Footer from "./Components/Footer";
 import { getUpcomingTours } from "./services/api";
 import "./App.css";
 
@@ -103,7 +104,7 @@ function App() {
 
 
       </Routes>
-
+      <Footer />
     </BrowserRouter>
   );
 }

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-
+import PastTripCard from "../Components/PastTripCard";
 import { getPastTours, getTourDetails } from "../services/api";
 
 function Trips() {
@@ -21,7 +21,12 @@ function Trips() {
                                 ...tour,
                                 ...details
                             };
-                        } catch {
+                        } catch (error) {
+                            console.error(
+                                `Failed to load details for tour ${tour.tourId}`,
+                                error
+                            );
+
                             return tour;
                         }
                     })
@@ -38,16 +43,6 @@ function Trips() {
 
         loadPastTours();
     }, []);
-
-    const formatDate = (date) => {
-        if (!date) return "";
-
-        return new Date(date).toLocaleDateString("en-IN", {
-            day: "2-digit",
-            month: "short",
-            year: "numeric"
-        });
-    };
 
     return (
         <main className="trips-page">
@@ -69,7 +64,9 @@ function Trips() {
 
                 <div className="trips-section-heading">
                     <span>COMPLETED JOURNEYS</span>
+
                     <h2>Our Past Trips</h2>
+
                     <p>
                         Every journey is a memory, every destination a blessing.
                     </p>
@@ -95,78 +92,33 @@ function Trips() {
 
                 {!loading && !error && tours.length > 0 && (
                     <div className="past-trips-grid">
-
                         {tours.map((tour) => (
-                            <article
-                                className="past-trip-card"
+                            <PastTripCard
                                 key={tour.tourId}
-                            >
-                                <div className="past-trip-image-wrapper">
-
-                                    {tour.coverImage ? (
-                                        <img
-                                            src={
-                                                tour.coverImage.startsWith("http")
-                                                    ? tour.coverImage
-                                                    : `http://localhost:5066${tour.coverImage.startsWith("/")
-                                                        ? tour.coverImage
-                                                        : `/images/${tour.coverImage}`
-                                                    }`
-                                            }
-                                            alt={tour.tourName}
-                                        />
-                                    ) : (
-                                        <div className="past-trip-placeholder">
-                                            Divine Journey
-                                        </div>
-                                    )}
-
-                                    <span className="completed-badge">
-                                        ✓ Completed Journey
-                                    </span>
-                                </div>
-
-                                <div className="past-trip-content">
-
-                                    <span className="past-trip-location">
-                                        📍 {tour.location}
-                                    </span>
-
-                                    <h3>{tour.tourName}</h3>
-
-                                    <p className="past-trip-date">
-                                        Journey Date · {formatDate(tour.startDate)}
-                                    </p>
-
-                                    {tour.description && (
-                                        <p className="past-trip-description">
-                                            {tour.description}
-                                        </p>
-                                    )}
-
-
-
-                                </div>
-                            </article>
+                                tour={tour}
+                            />
                         ))}
-
                     </div>
                 )}
+
             </section>
 
             {/* Customer Experiences */}
             {!loading &&
                 !error &&
                 tours.some(
-                    tour =>
+                    (tour) =>
                         tour.experiences &&
                         tour.experiences.length > 0
                 ) && (
+
                     <section className="past-experiences-section">
 
                         <div className="trips-section-heading">
                             <span>TRAVELER EXPERIENCES</span>
+
                             <h2>What Our Travelers Say</h2>
+
                             <p>
                                 Real experiences shared by devotees who
                                 travelled with Sakthi Divine Trip.
@@ -176,22 +128,25 @@ function Trips() {
                         <div className="past-experiences-grid">
 
                             {tours.flatMap(
-                                tour =>
+                                (tour) =>
                                     tour.experiences?.map(
-                                        experience => (
+                                        (experience) => (
                                             <article
                                                 className="past-experience-card"
                                                 key={experience.experienceId}
                                             >
+
                                                 <div className="experience-stars">
                                                     {"★".repeat(
                                                         experience.rating || 5
                                                     )}
                                                 </div>
 
-                                                <h3>
-                                                    {experience.experienceTitle}
-                                                </h3>
+                                                {experience.experienceTitle && (
+                                                    <h3>
+                                                        {experience.experienceTitle}
+                                                    </h3>
+                                                )}
 
                                                 <p>
                                                     {experience.experienceText}
@@ -204,6 +159,7 @@ function Trips() {
                                                 <span>
                                                     {tour.tourName}
                                                 </span>
+
                                             </article>
                                         )
                                     ) || []

@@ -1,6 +1,11 @@
+import { useEffect, useState } from "react";
+import { getPublishedExperiences } from "../Services/api";
+
 const API_BASE_URL = "http://localhost:5066";
 
 function Gallery() {
+    const [customerExperiences, setCustomerExperiences] = useState([]);
+
     const galleryItems = [
         {
             image: `${API_BASE_URL}/images/ecr_yatra.png`,
@@ -19,6 +24,27 @@ function Gallery() {
         }
     ];
 
+    useEffect(() => {
+        const loadCustomerExperiences = async () => {
+            try {
+                const data = await getPublishedExperiences();
+
+                setCustomerExperiences(
+                    data.filter(
+                        (experience) => experience.photoPath
+                    )
+                );
+            } catch (error) {
+                console.error(
+                    "Failed to load customer experiences:",
+                    error
+                );
+            }
+        };
+
+        loadCustomerExperiences();
+    }, []);
+
     return (
         <main className="gallery-page">
 
@@ -33,7 +59,6 @@ function Gallery() {
                 </p>
             </section>
 
-
             <section className="gallery-section">
 
                 <div className="gallery-heading">
@@ -41,11 +66,15 @@ function Gallery() {
                     <h2>Travel. Pray. Remember.</h2>
                 </div>
 
-
                 <div className="gallery-grid">
 
+                    {/* Existing Gallery Images */}
+
                     {galleryItems.map((item, index) => (
-                        <div className="gallery-card" key={index}>
+                        <div
+                            className="gallery-card"
+                            key={`gallery-${index}`}
+                        >
 
                             <div className="gallery-image-wrapper">
                                 <img
@@ -62,26 +91,40 @@ function Gallery() {
                         </div>
                     ))}
 
+
+                    {/* Customer Uploaded Photos */}
+                    {customerExperiences.map((experience) => (
+                        <div
+                            className="gallery-card"
+                            key={`experience-${experience.experienceId}`}
+                        >
+
+                            <div className="gallery-image-wrapper">
+                                <img
+                                    src={`${API_BASE_URL}${experience.photoPath}`}
+                                    alt={`${experience.customerName}'s travel experience`}
+                                    onError={(e) => {
+                                        e.currentTarget.closest(".gallery-card").remove();
+                                    }}
+                                />
+                            </div>
+
+                            <div className="gallery-card-content">
+
+                                <span>
+                                    {experience.tourName || "Traveler Experience"}
+                                </span>
+
+                                <h3>
+                                    {experience.customerName}
+                                </h3>
+
+                            </div>
+
+                        </div>
+                    ))}
+
                 </div>
-
-            </section>
-
-
-            <section className="gallery-cta">
-
-                <h2>Be Part of Our Next Journey</h2>
-
-                <p>
-                    Create your own divine memories with Sakthi Divine Trip.
-                </p>
-
-                <a
-                    href="https://wa.me/YOUR_PHONE_NUMBER"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                >
-                    WhatsApp Us
-                </a>
 
             </section>
 

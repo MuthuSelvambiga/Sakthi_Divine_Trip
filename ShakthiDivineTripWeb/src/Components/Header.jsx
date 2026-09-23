@@ -26,7 +26,7 @@ function Header() {
                 </nav>
 
                 <a
-                    href="https://wa.me/YOUR_PHONE_NUMBER"
+                    href="https://wa.me/919566009530?text=Hi%2C%20I%20am%20interested%20in%20booking%20a%20trip%20with%20Sakthi%20Divine%20Trip."
                     target="_blank"
                     rel="noopener noreferrer"
                     className="book-button"
