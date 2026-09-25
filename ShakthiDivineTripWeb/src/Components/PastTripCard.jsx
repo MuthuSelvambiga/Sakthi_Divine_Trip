@@ -1,13 +1,14 @@
 import { CalendarDays, MapPin, CheckCircle } from "lucide-react";
 
-const API_BASE_URL = "http://localhost:5066";
+const IMAGE_BASE_URL =
+    "https://sakthidivinetrip-api-dhdcfhdvdfewekau.westus3-01.azurewebsites.net";
 
 function PastTripCard({ tour }) {
 
     const imageUrl = tour.coverImage
         ? tour.coverImage.startsWith("http")
             ? tour.coverImage
-            : `${API_BASE_URL}${tour.coverImage.startsWith("/") ? "" : "/images/"}${tour.coverImage}`
+            : `${IMAGE_BASE_URL}/images/${tour.coverImage}`
         : null;
 
     const formatDate = (date) => {

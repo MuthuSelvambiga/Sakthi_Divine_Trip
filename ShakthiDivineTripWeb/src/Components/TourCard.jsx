@@ -1,16 +1,8 @@
 import { Link } from "react-router-dom";
 
-const API_BASE_URL = "http://localhost:5066";
-
 function TourCard({ tour }) {
 
-    const imageUrl = tour.coverImage
-        ? tour.coverImage.startsWith("http")
-            ? tour.coverImage
-            : tour.coverImage.startsWith("/")
-                ? `${API_BASE_URL}${tour.coverImage}`
-                : `${API_BASE_URL}/images/${tour.coverImage}`
-        : null;
+    const imageUrl = tour.coverImage || null;
 
     return (
         <div className="tour-card">

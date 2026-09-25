@@ -1,18 +1,42 @@
 console.log("API FILE LOADED");
 
-const API_BASE_URL = "http://localhost:5066/api";
+const API_BASE_URL =
+    "https://sakthidivinetrip-api-dhdcfhdvdfewekau.westus3-01.azurewebsites.net/api";
+
+const IMAGE_BASE_URL =
+    "https://sakthidivinetrip-api-dhdcfhdvdfewekau.westus3-01.azurewebsites.net";
+
+const getImageUrl = (image) => {
+    if (!image) return "";
+
+    if (image.startsWith("http")) {
+        return image;
+    }
+
+    if (image.startsWith("/images/")) {
+        return `${IMAGE_BASE_URL}${image}`;
+    }
+
+    return `${IMAGE_BASE_URL}/images/${image}`;
+};
+
 
 export const getUpcomingTours = async () => {
-
-
     const response = await fetch(`${API_BASE_URL}/Tours/upcoming`);
 
     if (!response.ok) {
         throw new Error("Failed to load upcoming tours.");
     }
 
-    return response.json();
+    const tours = await response.json();
+
+    return tours.map(tour => ({
+        ...tour,
+        coverImage: getImageUrl(tour.coverImage)
+    }));
 };
+
+
 export const getTourDetails = async (id) => {
     const response = await fetch(`${API_BASE_URL}/Tours/${id}/details`);
 
@@ -20,8 +44,15 @@ export const getTourDetails = async (id) => {
         throw new Error("Failed to load tour details.");
     }
 
-    return response.json();
+    const tour = await response.json();
+
+    return {
+        ...tour,
+        coverImage: getImageUrl(tour.coverImage)
+    };
 };
+
+
 export const getPastTours = async () => {
     const response = await fetch(`${API_BASE_URL}/Tours/past`);
 
@@ -29,8 +60,15 @@ export const getPastTours = async () => {
         throw new Error("Failed to load past tours.");
     }
 
-    return response.json();
+    const tours = await response.json();
+
+    return tours.map(tour => ({
+        ...tour,
+        coverImage: getImageUrl(tour.coverImage)
+    }));
 };
+
+
 export const getPublishedExperiences = async () => {
     const response = await fetch(
         `${API_BASE_URL}/CustomerExp/published`

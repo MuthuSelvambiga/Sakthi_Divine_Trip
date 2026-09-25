@@ -1,24 +1,25 @@
 import { useEffect, useState } from "react";
 import { getPublishedExperiences } from "../Services/api";
 
-const API_BASE_URL = "http://localhost:5066";
+const IMAGE_BASE_URL =
+    "https://sakthidivinetrip-api-dhdcfhdvdfewekau.westus3-01.azurewebsites.net";
 
 function Gallery() {
     const [customerExperiences, setCustomerExperiences] = useState([]);
 
     const galleryItems = [
         {
-            image: `${API_BASE_URL}/images/ecr_yatra.png`,
+            image: `${IMAGE_BASE_URL}/images/ecr_yatra.png`,
             title: "ECR Divine Temple Yatra",
             location: "Chennai - ECR"
         },
         {
-            image: `${API_BASE_URL}/images/madurai_trip.png`,
+            image: `${IMAGE_BASE_URL}/images/madurai_trip.png`,
             title: "Madurai Temple Journey",
             location: "Madurai"
         },
         {
-            image: `${API_BASE_URL}/images/kanchi_trip.png`,
+            image: `${IMAGE_BASE_URL}/images/kanchi_trip.png`,
             title: "Kanchi Divine Journey",
             location: "Kanchipuram"
         }
@@ -91,8 +92,8 @@ function Gallery() {
                         </div>
                     ))}
 
-
                     {/* Customer Uploaded Photos */}
+
                     {customerExperiences.map((experience) => (
                         <div
                             className="gallery-card"
@@ -101,10 +102,16 @@ function Gallery() {
 
                             <div className="gallery-image-wrapper">
                                 <img
-                                    src={`${API_BASE_URL}${experience.photoPath}`}
+                                    src={
+                                        experience.photoPath.startsWith("http")
+                                            ? experience.photoPath
+                                            : `${IMAGE_BASE_URL}${experience.photoPath}`
+                                    }
                                     alt={`${experience.customerName}'s travel experience`}
                                     onError={(e) => {
-                                        e.currentTarget.closest(".gallery-card").remove();
+                                        e.currentTarget
+                                            .closest(".gallery-card")
+                                            .remove();
                                     }}
                                 />
                             </div>
@@ -112,7 +119,8 @@ function Gallery() {
                             <div className="gallery-card-content">
 
                                 <span>
-                                    {experience.tourName || "Traveler Experience"}
+                                    {experience.tourName ||
+                                        "Traveler Experience"}
                                 </span>
 
                                 <h3>

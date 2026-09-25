@@ -44,7 +44,7 @@ function Contact() {
             }
 
             const response = await fetch(
-                "http://localhost:5066/api/CustomerExp",
+                "https://sakthidivinetrip-api-dhdcfhdvdfewekau.westus3-01.azurewebsites.net/api/CustomerExp",
                 {
                     method: "POST",
                     body: formDataToSend

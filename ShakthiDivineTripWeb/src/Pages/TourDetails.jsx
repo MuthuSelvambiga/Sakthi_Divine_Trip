@@ -8,9 +8,10 @@ import {
     MapPin
 } from "lucide-react";
 import { useParams } from "react-router-dom";
-import { getTourDetails } from "../services/api";
+import { getTourDetails } from "../Services/api";
 
-const API_BASE_URL = "http://localhost:5066";
+const IMAGE_BASE_URL =
+    "https://sakthidivinetrip-api-dhdcfhdvdfewekau.westus3-01.azurewebsites.net";
 
 function TourDetails() {
     const { id } = useParams();
@@ -50,9 +51,8 @@ function TourDetails() {
     const imageUrl = tour.coverImage
         ? tour.coverImage.startsWith("http")
             ? tour.coverImage
-            : `${API_BASE_URL}/images/${tour.coverImage}`
+            : `${IMAGE_BASE_URL}/images/${tour.coverImage}`
         : null;
-
 
     const formatDate = (date) => {
         if (!date) return "";
@@ -63,7 +63,9 @@ function TourDetails() {
             year: "numeric"
         });
     };
+
     const isPastTrip = tour && new Date(tour.startDate) < new Date();
+
     const getInclusionIcon = (text) => {
         const value = text.toLowerCase();
 
@@ -71,8 +73,12 @@ function TourDetails() {
             return <Bus size={22} strokeWidth={1.8} />;
         }
 
-        if (value.includes("food") || value.includes("breakfast") ||
-            value.includes("lunch") || value.includes("dinner")) {
+        if (
+            value.includes("food") ||
+            value.includes("breakfast") ||
+            value.includes("lunch") ||
+            value.includes("dinner")
+        ) {
             return <Utensils size={22} strokeWidth={1.8} />;
         }
 
@@ -94,6 +100,7 @@ function TourDetails() {
 
         return <MapPin size={22} strokeWidth={1.8} />;
     };
+
     return (
         <main className="tour-details-page">
 
@@ -134,11 +141,13 @@ function TourDetails() {
                     </p>
 
                     <div className="tour-details-meta">
+
                         <div>
                             <span>DATE</span>
                             <strong>
                                 {formatDate(tour.startDate)}
-                                {tour.endDate && ` - ${formatDate(tour.endDate)}`}
+                                {tour.endDate &&
+                                    ` - ${formatDate(tour.endDate)}`}
                             </strong>
                         </div>
 
@@ -153,10 +162,12 @@ function TourDetails() {
                                 <strong>{tour.availableSeats}</strong>
                             </div>
                         )}
+
                     </div>
 
                     {!isPastTrip && (
                         <div className="tour-details-price-box">
+
                             <span>Starting from</span>
 
                             <div className="tour-details-price">
@@ -165,16 +176,19 @@ function TourDetails() {
 
                             <small>per person</small>
 
-                            {tour.isEarlyBirdActive && tour.earlyBirdPrice && (
-                                <div className="tour-details-early-bird">
-                                    Early Bird ₹{tour.earlyBirdPrice}
-                                </div>
-                            )}
+                            {tour.isEarlyBirdActive &&
+                                tour.earlyBirdPrice && (
+                                    <div className="tour-details-early-bird">
+                                        Early Bird ₹{tour.earlyBirdPrice}
+                                    </div>
+                                )}
+
                         </div>
                     )}
 
                     {!isPastTrip && (
                         <div className="tour-details-actions">
+
                             <a
                                 className="tour-whatsapp-button"
                                 href={`https://wa.me/919566009530?text=${encodeURIComponent(
@@ -185,8 +199,10 @@ function TourDetails() {
                             >
                                 Book This Trip on WhatsApp
                             </a>
+
                         </div>
                     )}
+
                 </div>
             </section>
 
@@ -214,11 +230,13 @@ function TourDetails() {
                                 className="tour-inclusion-item"
                                 key={item.inclusionId}
                             >
+
                                 <span className="inclusion-icon">
                                     {getInclusionIcon(item.inclusionText)}
                                 </span>
 
                                 <p>{item.inclusionText}</p>
+
                             </div>
                         ))}
 
@@ -227,6 +245,7 @@ function TourDetails() {
                 </section>
             )}
 
+            {/* Itinerary */}
             {tour.itinerary && tour.itinerary.length > 0 && (
                 <section className="tour-details-section">
 
@@ -242,15 +261,17 @@ function TourDetails() {
 
                                 <div className="itinerary-day">
                                     {item.eventTime
-                                        ? new Date(`1970-01-01T${item.eventTime}`)
-                                            .toLocaleTimeString("en-IN", {
-                                                hour: "2-digit",
-                                                minute: "2-digit"
-                                            })
+                                        ? new Date(
+                                            `1970-01-01T${item.eventTime}`
+                                        ).toLocaleTimeString("en-IN", {
+                                            hour: "2-digit",
+                                            minute: "2-digit"
+                                        })
                                         : "—"}
                                 </div>
 
                                 <div>
+
                                     <span className="itinerary-type">
                                         {item.activityType}
                                     </span>
@@ -260,6 +281,7 @@ function TourDetails() {
                                     {item.description && (
                                         <p>{item.description}</p>
                                     )}
+
                                 </div>
 
                             </div>
