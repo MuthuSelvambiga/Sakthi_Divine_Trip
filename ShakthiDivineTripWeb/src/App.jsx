@@ -1,15 +1,15 @@
 import { useEffect, useState } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import TourDetails from "./pages/TourDetails";
-import About from "./pages/About";
-import Trips from "./pages/Trips";
-import Contact from "./pages/Contact";
-import Gallery from "./pages/Gallery";
 import Header from "./Components/Header";
+import TourDetails from "./Pages/TourDetails";
+import About from "./Pages/About";
+import Trips from "./Pages/Trips";
+import Contact from "./Pages/Contact";
+import Gallery from "./Pages/Gallery";
 import Hero from "./Components/Hero";
 import TourCard from "./Components/TourCard";
 import Footer from "./Components/Footer";
-import { getUpcomingTours } from "./services/api";
+import { getUpcomingTours } from "./Services/api";
 import "./App.css";
 
 function App() {
