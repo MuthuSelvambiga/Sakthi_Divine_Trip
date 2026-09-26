@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import PastTripCard from "../Components/PastTripCard";
-import { getPastTours, getTourDetails } from "../services/api";
+import { getPastTours, getTourDetails } from "../Services/api";
 
 function Trips() {
     const [tours, setTours] = useState([]);
