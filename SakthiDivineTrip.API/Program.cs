@@ -8,14 +8,12 @@ using System.Text;
 using Serilog;
 using Microsoft.OpenApi;
 
-
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
     .WriteTo.File(
         "Logs/application-.log",
         rollingInterval: RollingInterval.Day)
     .CreateLogger();
-
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -60,41 +58,50 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidIssuer = builder.Configuration["Jwt:Issuer"],
             ValidAudience = builder.Configuration["Jwt:Audience"],
 
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!))
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(
+                    builder.Configuration["Jwt:Key"]!))
         };
     });
+
 builder.Services.AddAuthorization();
+
 builder.Services.AddScoped<JWTService>();
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowReactApps", policy =>
     {
-        policy
-            .WithOrigins(
-                "http://localhost:5173",
-                "http://localhost:5174"
-            )
-            .AllowAnyHeader()
-            .AllowAnyMethod();
+        policy.WithOrigins(
+            "http://localhost:5173",
+            "http://localhost:5174",
+            "https://wonderful-plant-0f6f5061e.2.azurestaticapps.net"
+        )
+        .AllowAnyHeader()
+        .AllowAnyMethod()
+        .AllowCredentials(); // required since the API sets cookies (ARRAffinity, SameSite=None)
     });
 });
+
 var app = builder.Build();
 
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+// Swagger
+app.UseSwagger();
+app.UseSwaggerUI();
 
 app.UseHttpsRedirection();
-app.UseStaticFiles();
+
+app.UseRouting();
+
+// CORS must be registered right after UseRouting and BEFORE Authentication/Authorization
 app.UseCors("AllowReactApps");
+
+app.UseStaticFiles();
+
 app.UseAuthentication();
+app.UseAuthorization();
 
 app.UseMiddleware<GlobalExceptionMiddleware>();
-
-
-app.UseAuthorization();
 
 app.MapControllers();
 

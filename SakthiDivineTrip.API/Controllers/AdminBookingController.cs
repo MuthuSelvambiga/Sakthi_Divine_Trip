@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using SakthiDivineTrip.API.DTO;
+
 using SakthiDivineTrip.API.Models;
 
 namespace SakthiDivineTrip.API.Controllers
@@ -73,7 +75,118 @@ namespace SakthiDivineTrip.API.Controllers
 
             return Ok(booking);
         }
+        // POST: api/AdminBooking
+        [HttpPost]
+        public async Task<IActionResult> CreateBooking(
+            AdminCreateBookingDto request)
+        {
+            // 1. Validate customer details
+            if (string.IsNullOrWhiteSpace(request.CustomerName))
+                return BadRequest("Customer name is required.");
 
+            if (string.IsNullOrWhiteSpace(request.CustomerPhone))
+                return BadRequest("Customer phone is required.");
+
+            if (request.NumberOfSeats <= 0)
+                return BadRequest("Number of seats must be greater than 0.");
+
+            // 2. Find tour
+            var tour = await _applicationDbContext.Tours
+                .FirstOrDefaultAsync(x => x.TourId == request.TourId);
+
+            if (tour == null)
+                return NotFound("Tour not found.");
+
+            // 3. Check tour availability
+            if (!tour.IsActive)
+                return BadRequest("This tour is not active.");
+
+            if (tour.StartDate < DateOnly.FromDateTime(DateTime.UtcNow))
+                return BadRequest("This tour has already started.");
+
+            if (request.NumberOfSeats > tour.AvailableSeats)
+                return BadRequest(
+                    $"Only {tour.AvailableSeats} seats are available.");
+
+            // 4. Calculate Early Bird and Regular seats
+            int earlyBirdSeats = 0;
+            int regularSeats = request.NumberOfSeats;
+
+            if (tour.IsEarlyBirdActive &&
+                tour.EarlyBirdPrice.HasValue &&
+                tour.EarlyBirdRemaining.HasValue &&
+                tour.EarlyBirdRemaining.Value > 0)
+            {
+                earlyBirdSeats = Math.Min(
+                    request.NumberOfSeats,
+                    tour.EarlyBirdRemaining.Value);
+
+                regularSeats =
+                    request.NumberOfSeats - earlyBirdSeats;
+            }
+
+            // 5. Calculate total amount
+            decimal totalAmount =
+                (earlyBirdSeats * (tour.EarlyBirdPrice ?? tour.Price)) +
+                (regularSeats * tour.Price);
+
+            // 6. Price per person
+            decimal pricePerPerson;
+
+            if (request.NumberOfSeats > 0)
+            {
+                pricePerPerson =
+                    totalAmount / request.NumberOfSeats;
+            }
+            else
+            {
+                pricePerPerson = tour.Price;
+            }
+
+            // 7. Reduce available seats
+            tour.AvailableSeats -= request.NumberOfSeats;
+
+            // 8. Reduce Early Bird seats
+            if (earlyBirdSeats > 0)
+            {
+                tour.EarlyBirdRemaining =
+                    (tour.EarlyBirdRemaining ?? 0) - earlyBirdSeats;
+
+                if (tour.EarlyBirdRemaining <= 0)
+                {
+                    tour.EarlyBirdRemaining = 0;
+                    tour.IsEarlyBirdActive = false;
+                }
+            }
+
+            // 9. Create booking
+            var booking = new Booking
+            {
+                TourId = request.TourId,
+                CustomerName = request.CustomerName.Trim(),
+                CustomerPhone = request.CustomerPhone.Trim(),
+                NumberOfSeats = request.NumberOfSeats,
+
+                PricePerPerson = pricePerPerson,
+                TotalAmount = totalAmount,
+
+                EarlyBirdSeats = earlyBirdSeats,
+                RegularSeats = regularSeats,
+
+                BookingDate = DateTime.UtcNow,
+
+                BookingStatus = "Pending",
+
+                CreatedOn = DateTime.UtcNow,
+                UpdatedOn = DateTime.UtcNow
+            };
+
+            _applicationDbContext.Bookings.Add(booking);
+
+            await _applicationDbContext.SaveChangesAsync();
+
+            return Ok(booking);
+        }
         // PUT: api/AdminBooking/confirm/5
         [HttpPut("confirm/{id}")]
         public async Task<IActionResult> ConfirmBooking(int id)
