@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { API_BASE_URL } from "../config";
 
 function Experiences() {
     const [experiences, setExperiences] = useState([]);
@@ -14,7 +15,7 @@ function Experiences() {
             const token = localStorage.getItem("token");
 
             const response = await fetch(
-                "http://localhost:5066/api/CustomerExp",
+                `${API_BASE_URL}/CustomerExp`,
                 {
                     headers: {
                         Authorization: `Bearer ${token}`
@@ -46,7 +47,7 @@ function Experiences() {
             const token = localStorage.getItem("token");
 
             const response = await fetch(
-                `http://localhost:5066/api/CustomerExp/${experienceId}/publish`,
+                `${API_BASE_URL}/CustomerExp/${experienceId}/publish`,
                 {
                     method: "PUT",
                     headers: {
@@ -76,7 +77,7 @@ function Experiences() {
             const token = localStorage.getItem("token");
 
             const response = await fetch(
-                `http://localhost:5066/api/CustomerExp/${experienceId}/unpublish`,
+                `${API_BASE_URL}/CustomerExp/${experienceId}/unpublish`,
                 {
                     method: "PUT",
                     headers: {
@@ -112,7 +113,7 @@ function Experiences() {
             const token = localStorage.getItem("token");
 
             const response = await fetch(
-                `http://localhost:5066/api/CustomerExp/${experienceId}`,
+                `${API_BASE_URL}/CustomerExp/${experienceId}`,
                 {
                     method: "DELETE",
                     headers: {

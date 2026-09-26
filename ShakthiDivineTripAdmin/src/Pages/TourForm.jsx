@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { API_BASE_URL } from "../config";
 
 function TourForm() {
     const navigate = useNavigate();
@@ -39,7 +40,7 @@ function TourForm() {
                     imageFormData.append("file", formData.coverImage);
 
                     const uploadResponse = await fetch(
-                        "http://localhost:5066/api/Tours/upload-image",
+                        `${API_BASE_URL}/Tours/upload-image`,
                         {
                             method: "POST",
                             headers: {
@@ -60,7 +61,7 @@ function TourForm() {
                 }
 
                 const response = await fetch(
-                    `http://localhost:5066/api/Tours/${id}`,
+                    `${API_BASE_URL}/Tours/${id}`,
                     {
                         headers: {
                             "Authorization": `Bearer ${token}`
@@ -132,7 +133,7 @@ function TourForm() {
                 imageFormData.append("file", formData.coverImage);
 
                 const uploadResponse = await fetch(
-                    "http://localhost:5066/api/Tours/upload-image",
+                    `${API_BASE_URL}/Tours/upload-image`,
                     {
                         method: "POST",
                         headers: {
@@ -159,8 +160,8 @@ function TourForm() {
             }
 
             const url = isEditMode
-                ? `http://localhost:5066/api/Tours/${id}`
-                : "http://localhost:5066/api/Tours";
+                ? `${API_BASE_URL}/Tours/${id}`
+                : `${API_BASE_URL}/Tours`;
 
             const method = isEditMode ? "PATCH" : "POST";
 

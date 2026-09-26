@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { API_BASE_URL } from "../config";
 function Dashboard() {
     const [dashboard, setDashboard] = useState({
         totalTours: 0,
@@ -15,7 +16,7 @@ function Dashboard() {
                 const token = localStorage.getItem("token");
 
                 const response = await fetch(
-                    "http://localhost:5066/api/AdminDashboard",
+                    `${API_BASE_URL}/AdminDashboard`,
                     {
                         headers: {
                             Authorization: `Bearer ${token}`

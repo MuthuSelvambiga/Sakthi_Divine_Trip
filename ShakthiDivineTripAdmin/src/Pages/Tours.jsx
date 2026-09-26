@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-
+import { API_BASE_URL } from "../config";
 function Tours() {
     const navigate = useNavigate();
     const [tours, setTours] = useState([]);
@@ -11,7 +11,7 @@ function Tours() {
         const loadTours = async () => {
             try {
                 const response = await fetch(
-                    "http://localhost:5066/api/Tours"
+                    `${API_BASE_URL}/Tours`
                 );
 
                 if (!response.ok) {
@@ -45,7 +45,7 @@ function Tours() {
             const token = localStorage.getItem("token");
 
             const response = await fetch(
-                `http://localhost:5066/api/Tours/${tourId}`,
+                `${API_BASE_URL}/Tours/${tourId}`,
                 {
                     method: "DELETE",
                     headers: {
@@ -83,7 +83,7 @@ function Tours() {
             const token = localStorage.getItem("token");
 
             const response = await fetch(
-                `http://localhost:5066/api/Tours/${tourId}/activate`,
+                `${API_BASE_URL}/Tours/${tourId}/activate`,
                 {
                     method: "PATCH",
                     headers: {

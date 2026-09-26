@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
+import { API_BASE_URL } from "../config";
 
 function Bookings() {
     const [bookings, setBookings] = useState([]);
@@ -14,12 +15,112 @@ function Bookings() {
     const [currentPage, setCurrentPage] = useState(1);
     const [statusFilter, setStatusFilter] = useState(statusFromUrl);
 
+    const [showAddBooking, setShowAddBooking] = useState(false);
+    const [tours, setTours] = useState([]);
+    const [creatingBooking, setCreatingBooking] = useState(false);
+
+    const [newBooking, setNewBooking] = useState({
+        customerName: "",
+        customerPhone: "",
+        tourId: "",
+        numberOfSeats: 1
+    });
+
     const bookingsPerPage = 7;
 
     // Reset page whenever filter changes
     useEffect(() => {
         setCurrentPage(1);
     }, [statusFilter]);
+
+    // Load active tours for Add Booking form
+    useEffect(() => {
+        const loadTours = async () => {
+            try {
+                const token = localStorage.getItem("token");
+                const response = await fetch(`${API_BASE_URL}/Tours`, {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                });
+                if (!response.ok) {
+                    throw new Error("Failed to load tours.");
+                }
+                const data = await response.json();
+                setTours(data.filter((tour) => tour.isActive));
+            } catch (error) {
+                console.error("Load tours error:", error);
+            }
+        };
+        loadTours();
+    }, []);
+
+    const handleCreateBooking = async (e) => {
+        e.preventDefault();
+        if (!newBooking.customerName.trim()) {
+            alert("Customer name is required.");
+            return;
+        }
+        if (!newBooking.customerPhone.trim()) {
+            alert("Customer phone is required.");
+            return;
+        }
+        if (!newBooking.tourId) {
+            alert("Please select a tour.");
+            return;
+        }
+        if (Number(newBooking.numberOfSeats) <= 0) {
+            alert("Number of seats must be greater than 0.");
+            return;
+        }
+        try {
+            setCreatingBooking(true);
+            const token = localStorage.getItem("token");
+            const response = await fetch(`${API_BASE_URL}/AdminBooking`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    tourId: Number(newBooking.tourId),
+                    customerName: newBooking.customerName.trim(),
+                    customerPhone: newBooking.customerPhone.trim(),
+                    numberOfSeats: Number(newBooking.numberOfSeats)
+                })
+            });
+            if (!response.ok) {
+                const message = await response.text();
+                throw new Error(message || "Failed to create booking.");
+            }
+            const createdBooking = await response.json();
+            alert(`Booking created successfully.\nBooking ID: ${createdBooking.bookingId}\nStatus: Pending`);
+            setNewBooking({
+                customerName: "",
+                customerPhone: "",
+                tourId: "",
+                numberOfSeats: 1
+            });
+            setShowAddBooking(false);
+            const url = statusFilter
+                ? `${API_BASE_URL}/AdminBooking?status=${statusFilter}`
+                : `${API_BASE_URL}/AdminBooking`;
+            const refreshResponse = await fetch(url, {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            });
+            if (refreshResponse.ok) {
+                const refreshedData = await refreshResponse.json();
+                setBookings(refreshedData);
+            }
+        } catch (error) {
+            console.error("Create booking error:", error);
+            alert(error.message);
+        } finally {
+            setCreatingBooking(false);
+        }
+    };
 
     // Load bookings
     useEffect(() => {
@@ -32,8 +133,8 @@ function Bookings() {
 
                 // Only send status parameter when a specific status is selected
                 const url = statusFilter
-                    ? `http://localhost:5066/api/AdminBooking?status=${statusFilter}`
-                    : "http://localhost:5066/api/AdminBooking";
+                    ? `${API_BASE_URL}/AdminBooking?status=${statusFilter}`
+                    : `${API_BASE_URL}/AdminBooking`;
 
                 const response = await fetch(url, {
                     headers: {
@@ -83,7 +184,7 @@ function Bookings() {
             const token = localStorage.getItem("token");
 
             const response = await fetch(
-                `http://localhost:5066/api/AdminBooking/confirm/${bookingId}`,
+                `${API_BASE_URL}/AdminBooking/confirm/${bookingId}`,
                 {
                     method: "PUT",
                     headers: {
@@ -104,8 +205,8 @@ function Bookings() {
 
             // Reload filtered data
             const url = statusFilter
-                ? `http://localhost:5066/api/AdminBooking?status=${statusFilter}`
-                : "http://localhost:5066/api/AdminBooking";
+                ? `${API_BASE_URL}/AdminBooking?status=${statusFilter}`
+                : `${API_BASE_URL}/AdminBooking`;
 
             const refreshResponse = await fetch(url, {
                 headers: {
@@ -140,7 +241,7 @@ function Bookings() {
             const token = localStorage.getItem("token");
 
             const response = await fetch(
-                `http://localhost:5066/api/AdminBooking/cancel/${bookingId}?cancellationReason=${encodeURIComponent(
+                `${API_BASE_URL}/AdminBooking/cancel/${bookingId}?cancellationReason=${encodeURIComponent(
                     cancellationReason.trim()
                 )}`,
                 {
@@ -167,8 +268,8 @@ function Bookings() {
 
             // Reload filtered data
             const url = statusFilter
-                ? `http://localhost:5066/api/AdminBooking?status=${statusFilter}`
-                : "http://localhost:5066/api/AdminBooking";
+                ? `${API_BASE_URL}/AdminBooking?status=${statusFilter}`
+                : `${API_BASE_URL}/AdminBooking`;
 
             const refreshResponse = await fetch(url, {
                 headers: {
@@ -190,25 +291,355 @@ function Bookings() {
         <div className="bookings-page">
 
             {/* Page Header */}
-            <div className="page-header">
-                <div>
+            <div className="page-header" style={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "stretch",
+                gap: "22px",
+                marginBottom: "30px"
+            }}>
+                {/* Title */}
+                <div style={{
+                    textAlign: "center"
+                }}>
                     <h1>Bookings</h1>
                     <p>View and manage customer tour bookings.</p>
                 </div>
 
-                <div className="booking-filter">
-                    <label>Booking Status</label>
-
-                    <select
-                        value={statusFilter}
-                        onChange={(e) => setStatusFilter(e.target.value)}
+                {/* Actions row */}
+                <div style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    gap: "20px",
+                    width: "100%"
+                }}>
+                    <button
+                        type="button"
+                        onClick={() => setShowAddBooking(!showAddBooking)}
+                        style={{
+                            padding: "13px 22px",
+                            border: "none",
+                            borderRadius: "9px",
+                            backgroundColor: "#f5c451",
+                            color: "#5c1f1f",
+                            fontWeight: "700",
+                            fontSize: "15px",
+                            cursor: "pointer",
+                            boxShadow: "0 3px 8px rgba(0,0,0,0.08)"
+                        }}
                     >
-                        <option value="">All Bookings</option>
-                        <option value="Pending">Pending</option>
-                        <option value="Confirmed">Confirmed</option>
-                        <option value="Cancelled">Cancelled</option>
-                    </select>
+                        + Add Booking
+                    </button>
+
+                    <div
+                        className="booking-filter"
+                        style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "12px"
+                        }}
+                    >
+                        <label style={{
+                            fontWeight: "700",
+                            color: "#28153d",
+                            whiteSpace: "nowrap"
+                        }}>
+                            Booking Status
+                        </label>
+
+                        <select
+                            value={statusFilter}
+                            onChange={(e) => setStatusFilter(e.target.value)}
+                        >
+                            <option value="">All Bookings</option>
+                            <option value="Pending">Pending</option>
+                            <option value="Confirmed">Confirmed</option>
+                            <option value="Cancelled">Cancelled</option>
+                        </select>
+                    </div>
                 </div>
+
+                {showAddBooking && (
+                    <div
+                        style={{
+                            position: "fixed",
+                            inset: 0,
+                            backgroundColor: "rgba(0, 0, 0, 0.45)",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            zIndex: 1000,
+                            padding: "20px"
+                        }}
+                        onClick={() => setShowAddBooking(false)}
+                    >
+                        <div
+                            style={{
+                                width: "100%",
+                                maxWidth: "560px",
+                                backgroundColor: "#ffffff",
+                                borderRadius: "16px",
+                                padding: "30px",
+                                boxShadow: "0 15px 40px rgba(0,0,0,0.25)"
+                            }}
+                            onClick={(e) => e.stopPropagation()}
+                        >
+
+                            {/* Modal Header */}
+                            <div
+                                style={{
+                                    display: "flex",
+                                    justifyContent: "space-between",
+                                    alignItems: "center",
+                                    marginBottom: "8px"
+                                }}
+                            >
+                                <h2
+                                    style={{
+                                        margin: 0,
+                                        color: "#7d2525",
+                                        fontSize: "24px"
+                                    }}
+                                >
+                                    Add WhatsApp Booking
+                                </h2>
+
+                                <button
+                                    type="button"
+                                    onClick={() => setShowAddBooking(false)}
+                                    style={{
+                                        border: "none",
+                                        background: "transparent",
+                                        fontSize: "24px",
+                                        cursor: "pointer",
+                                        color: "#777"
+                                    }}
+                                >
+                                    ×
+                                </button>
+                            </div>
+
+                            <p
+                                style={{
+                                    marginTop: "5px",
+                                    marginBottom: "25px",
+                                    color: "#666"
+                                }}
+                            >
+                                Enter the booking details received from the customer on WhatsApp.
+                            </p>
+
+                            <form onSubmit={handleCreateBooking}>
+
+                                {/* Customer Name */}
+                                <div style={{ marginBottom: "18px" }}>
+                                    <label
+                                        style={{
+                                            display: "block",
+                                            marginBottom: "7px",
+                                            fontWeight: "600"
+                                        }}
+                                    >
+                                        Customer Name
+                                    </label>
+
+                                    <input
+                                        type="text"
+                                        value={newBooking.customerName}
+                                        onChange={(e) =>
+                                            setNewBooking({
+                                                ...newBooking,
+                                                customerName: e.target.value
+                                            })
+                                        }
+                                        placeholder="Enter customer name"
+                                        style={{
+                                            width: "100%",
+                                            padding: "11px 12px",
+                                            border: "1px solid #ddd",
+                                            borderRadius: "7px",
+                                            boxSizing: "border-box"
+                                        }}
+                                    />
+                                </div>
+
+                                {/* Customer Phone */}
+                                <div style={{ marginBottom: "18px" }}>
+                                    <label
+                                        style={{
+                                            display: "block",
+                                            marginBottom: "7px",
+                                            fontWeight: "600"
+                                        }}
+                                    >
+                                        Customer Phone
+                                    </label>
+
+                                    <input
+                                        type="text"
+                                        value={newBooking.customerPhone}
+                                        onChange={(e) =>
+                                            setNewBooking({
+                                                ...newBooking,
+                                                customerPhone: e.target.value
+                                            })
+                                        }
+                                        placeholder="Enter phone number"
+                                        style={{
+                                            width: "100%",
+                                            padding: "11px 12px",
+                                            border: "1px solid #ddd",
+                                            borderRadius: "7px",
+                                            boxSizing: "border-box"
+                                        }}
+                                    />
+                                </div>
+
+                                {/* Tour */}
+                                <div style={{ marginBottom: "18px" }}>
+                                    <label
+                                        style={{
+                                            display: "block",
+                                            marginBottom: "7px",
+                                            fontWeight: "600"
+                                        }}
+                                    >
+                                        Tour
+                                    </label>
+
+                                    <select
+                                        value={newBooking.tourId}
+                                        onChange={(e) =>
+                                            setNewBooking({
+                                                ...newBooking,
+                                                tourId: e.target.value
+                                            })
+                                        }
+                                        style={{
+                                            width: "100%",
+                                            padding: "11px 12px",
+                                            border: "1px solid #ddd",
+                                            borderRadius: "7px",
+                                            boxSizing: "border-box",
+                                            backgroundColor: "#fff"
+                                        }}
+                                    >
+                                        <option value="">
+                                            Select Tour
+                                        </option>
+
+                                        {tours.map((tour) => (
+                                            <option
+                                                key={tour.tourId}
+                                                value={tour.tourId}
+                                            >
+                                                {tour.tourName}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                {/* Seats */}
+                                <div style={{ marginBottom: "20px" }}>
+                                    <label
+                                        style={{
+                                            display: "block",
+                                            marginBottom: "7px",
+                                            fontWeight: "600"
+                                        }}
+                                    >
+                                        Number of Seats
+                                    </label>
+
+                                    <input
+                                        type="number"
+                                        min="1"
+                                        value={newBooking.numberOfSeats}
+                                        onChange={(e) =>
+                                            setNewBooking({
+                                                ...newBooking,
+                                                numberOfSeats: e.target.value
+                                            })
+                                        }
+                                        style={{
+                                            width: "100%",
+                                            padding: "11px 12px",
+                                            border: "1px solid #ddd",
+                                            borderRadius: "7px",
+                                            boxSizing: "border-box"
+                                        }}
+                                    />
+                                </div>
+
+                                {/* Status */}
+                                <div
+                                    style={{
+                                        backgroundColor: "#fff8df",
+                                        borderRadius: "8px",
+                                        padding: "14px",
+                                        marginBottom: "25px"
+                                    }}
+                                >
+                                    <strong>Booking Status: Pending</strong>
+
+                                    <div
+                                        style={{
+                                            marginTop: "5px",
+                                            color: "#666",
+                                            fontSize: "14px"
+                                        }}
+                                    >
+                                        Price and total amount will be calculated automatically.
+                                    </div>
+                                </div>
+
+                                {/* Buttons */}
+                                <div
+                                    style={{
+                                        display: "flex",
+                                        justifyContent: "flex-end",
+                                        gap: "10px"
+                                    }}
+                                >
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowAddBooking(false)}
+                                        disabled={creatingBooking}
+                                        style={{
+                                            padding: "10px 20px",
+                                            border: "1px solid #ccc",
+                                            borderRadius: "7px",
+                                            backgroundColor: "#fff",
+                                            cursor: "pointer"
+                                        }}
+                                    >
+                                        Cancel
+                                    </button>
+
+                                    <button
+                                        type="submit"
+                                        disabled={creatingBooking}
+                                        style={{
+                                            padding: "10px 20px",
+                                            border: "none",
+                                            borderRadius: "7px",
+                                            backgroundColor: "#7d2525",
+                                            color: "#fff",
+                                            fontWeight: "600",
+                                            cursor: "pointer"
+                                        }}
+                                    >
+                                        {creatingBooking
+                                            ? "Creating..."
+                                            : "Create Booking"}
+                                    </button>
+                                </div>
+
+                            </form>
+                        </div>
+                    </div>
+                )}
             </div>
 
             {/* Booking Table */}
@@ -222,7 +653,8 @@ function Bookings() {
                         </div>
 
                         <span className="booking-count">
-                            {bookings.length} Bookings
+                            {bookings.length}{" "}
+                            {bookings.length === 1 ? "Booking" : "Bookings"}
                         </span>
                     </div>
 
@@ -283,22 +715,41 @@ function Bookings() {
                                         </td>
 
                                         <td className="actions-cell">
-                                            {booking.bookingStatus !== "Cancelled" && (
+
+                                            {/* Pending → Confirm + Cancel */}
+                                            {booking.bookingStatus === "Pending" && (
+                                                <>
+                                                    <button
+                                                        className="confirm-booking-button"
+                                                        onClick={() => handleConfirm(booking.bookingId)}
+                                                    >
+                                                        Confirm
+                                                    </button>
+
+                                                    <button
+                                                        className="cancel-booking-button"
+                                                        onClick={() => handleCancel(booking.bookingId)}
+                                                    >
+                                                        Cancel
+                                                    </button>
+                                                </>
+                                            )}
+
+                                            {/* Confirmed → Cancel only */}
+                                            {booking.bookingStatus === "Confirmed" && (
                                                 <button
                                                     className="cancel-booking-button"
-                                                    onClick={() =>
-                                                        handleCancel(booking.bookingId)
-                                                    }
+                                                    onClick={() => handleCancel(booking.bookingId)}
                                                 >
                                                     Cancel
                                                 </button>
                                             )}
 
+                                            {/* Cancelled → no action */}
                                             {booking.bookingStatus === "Cancelled" && (
-                                                <span className="no-action">
-                                                    —
-                                                </span>
+                                                <span className="no-action">—</span>
                                             )}
+
                                         </td>
 
                                     </tr>
