@@ -31,57 +31,67 @@ function TourForm() {
         const loadTour = async () => {
             try {
                 setLoading(true);
+                setError("");
 
                 const token = localStorage.getItem("token");
-                let coverImagePath = formData.coverImage;
 
-                if (formData.coverImage instanceof File) {
-                    const imageFormData = new FormData();
-                    imageFormData.append("file", formData.coverImage);
+                console.log("===== EDIT TOUR LOAD =====");
+                console.log("Tour ID:", id);
+                console.log("API URL:", `${API_BASE_URL}/Tours/${id}`);
+                console.log("Token exists:", !!token);
 
-                    const uploadResponse = await fetch(
-                        `${API_BASE_URL}/Tours/upload-image`,
-                        {
-                            method: "POST",
-                            headers: {
-                                "Authorization": `Bearer ${token}`
-                            },
-                            body: imageFormData
-                        }
-                    );
-
-                    const uploadText = await uploadResponse.text();
-
-                    if (!uploadResponse.ok) {
-                        throw new Error(uploadText || "Image upload failed.");
-                    }
-
-                    const uploadData = JSON.parse(uploadText);
-                    coverImagePath = uploadData.imagePath;
+                if (!token) {
+                    throw new Error("Authentication token not found. Please login again.");
                 }
 
                 const response = await fetch(
                     `${API_BASE_URL}/Tours/${id}`,
                     {
+                        method: "GET",
                         headers: {
+                            "Accept": "application/json",
                             "Authorization": `Bearer ${token}`
-                        }
+                        },
+                        cache: "no-store"
                     }
                 );
 
+                console.log("Tour API status:", response.status);
+                console.log("Tour API status text:", response.statusText);
+
+                const responseText = await response.text();
+
+                console.log("Tour API response:", responseText);
+
                 if (!response.ok) {
-                    throw new Error("Failed to load tour.");
+                    throw new Error(
+                        `Failed to load tour. Status: ${response.status}. ${responseText}`
+                    );
                 }
 
-                const tour = await response.json();
+                if (!responseText) {
+                    throw new Error("Tour API returned an empty response.");
+                }
+
+                const tour = JSON.parse(responseText);
+
+                console.log("Parsed tour data:", tour);
 
                 setFormData({
                     categoryId: tour.categoryId ?? "",
                     tourName: tour.tourName ?? "",
                     location: tour.location ?? "",
                     description: tour.description ?? "",
-                    startDate: tour.startDate ?? "",
-                    endDate: tour.endDate ?? "",
+
+                    // HTML date input needs YYYY-MM-DD
+                    startDate: tour.startDate
+                        ? String(tour.startDate).substring(0, 10)
+                        : "",
+
+                    endDate: tour.endDate
+                        ? String(tour.endDate).substring(0, 10)
+                        : "",
+
                     durationDays: tour.durationDays ?? "",
                     price: tour.price ?? "",
                     availableSeats: tour.availableSeats ?? "",
@@ -91,18 +101,17 @@ function TourForm() {
                     isEarlyBirdActive: tour.isEarlyBirdActive ?? false
                 });
 
+                console.log("Tour form populated successfully.");
             } catch (error) {
-                console.error(error);
-                setError("Unable to load tour.");
+                console.error("Load tour error:", error);
+                setError(error.message || "Unable to load tour.");
             } finally {
                 setLoading(false);
             }
         };
 
         loadTour();
-
     }, [id, isEditMode]);
-
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
 
