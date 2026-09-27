@@ -2192,12 +2192,24 @@ body {
   }
 }
 
-/* Fix text visibility in Tour form */
+
+/* =========================================================
+   MOBILE FORM TEXT VISIBILITY FIX
+   Forces form controls to use a light color scheme so that
+   entered/selected values remain visible on Android/Chrome.
+========================================================= */
+
+.tour-form,
+.bookings-page {
+  color-scheme: light;
+}
+
+/* Tour Add/Edit form */
 .tour-form input,
 .tour-form select,
 .tour-form textarea {
   color: #222 !important;
-  background-color: #fff !important;
+  background-color: #ffffff !important;
   -webkit-text-fill-color: #222 !important;
   opacity: 1 !important;
 }
@@ -2211,12 +2223,44 @@ body {
 
 .tour-form select option {
   color: #222 !important;
-  background-color: #fff !important;
+  background-color: #ffffff !important;
 }
 
 .tour-form input:disabled,
 .tour-form select:disabled,
 .tour-form textarea:disabled {
+  color: #222 !important;
+  -webkit-text-fill-color: #222 !important;
+  opacity: 1 !important;
+}
+
+/* Add WhatsApp Booking / Booking page */
+.bookings-page input,
+.bookings-page select,
+.bookings-page textarea {
+  color: #222 !important;
+  background-color: #ffffff !important;
+  -webkit-text-fill-color: #222 !important;
+  opacity: 1 !important;
+  color-scheme: light;
+}
+
+.bookings-page input::placeholder,
+.bookings-page textarea::placeholder {
+  color: #777 !important;
+  -webkit-text-fill-color: #777 !important;
+  opacity: 1 !important;
+}
+
+.bookings-page select option {
+  color: #222 !important;
+  background-color: #ffffff !important;
+}
+
+/* Keep disabled booking controls readable */
+.bookings-page input:disabled,
+.bookings-page select:disabled,
+.bookings-page textarea:disabled {
   color: #222 !important;
   -webkit-text-fill-color: #222 !important;
   opacity: 1 !important;
