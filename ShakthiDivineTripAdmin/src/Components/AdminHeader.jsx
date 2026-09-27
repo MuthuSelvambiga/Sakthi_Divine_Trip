@@ -1,8 +1,16 @@
-import { UserCircle, LogOut } from "lucide-react";
+import { UserCircle, LogOut, Menu } from "lucide-react";
 
-function AdminHeader() {
+function AdminHeader({ onMenuClick }) {
     return (
         <header className="admin-header">
+
+            <button
+                className="sidebar-toggle"
+                onClick={onMenuClick}
+                aria-label="Open menu"
+            >
+                <Menu size={24} />
+            </button>
 
             <div className="admin-header-title">
                 <h1>Admin Panel</h1>

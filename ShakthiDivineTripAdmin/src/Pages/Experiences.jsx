@@ -181,118 +181,124 @@ function Experiences() {
                 experiences.length > 0 && (
                     <div className="experience-table-container">
 
-                        <table className="experience-table">
+                        {/* Scroll wrapper: lets the table scroll sideways
+                            on narrow screens instead of squashing columns */}
+                        <div className="experience-table-wrapper">
 
-                            <thead>
-                                <tr>
-                                    <th>Customer</th>
-                                    <th>Tour</th>
-                                    <th>Rating</th>
-                                    <th>Experience</th>
-                                    <th>Status</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
+                            <table className="experience-table">
 
-                            <tbody>
+                                <thead>
+                                    <tr>
+                                        <th>Customer</th>
+                                        <th>Tour</th>
+                                        <th>Rating</th>
+                                        <th>Experience</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
 
-                                {currentExperiences.map(
-                                    (experience) => (
-                                        <tr
-                                            key={
-                                                experience.experienceId
-                                            }
-                                        >
+                                <tbody>
 
-                                            <td>
-                                                {
-                                                    experience.customerName
+                                    {currentExperiences.map(
+                                        (experience) => (
+                                            <tr
+                                                key={
+                                                    experience.experienceId
                                                 }
-                                            </td>
+                                            >
 
-                                            <td>
-                                                {
-                                                    experience.tourName ??
-                                                    "-"
-                                                }
-                                            </td>
-
-                                            <td>
-                                                <span className="experience-rating">
-                                                    {"★".repeat(
-                                                        experience.rating
-                                                    )}
-                                                </span>
-                                            </td>
-
-                                            <td>
-                                                <div className="experience-text">
+                                                <td>
                                                     {
-                                                        experience.experienceText
+                                                        experience.customerName
                                                     }
-                                                </div>
-                                            </td>
+                                                </td>
 
-                                            <td>
-                                                {experience.isPublishedWithPermission ? (
-                                                    <span className="experience-status-published">
-                                                        Published
+                                                <td>
+                                                    {
+                                                        experience.tourName ??
+                                                        "-"
+                                                    }
+                                                </td>
+
+                                                <td>
+                                                    <span className="experience-rating">
+                                                        {"★".repeat(
+                                                            experience.rating
+                                                        )}
                                                     </span>
-                                                ) : (
-                                                    <span className="experience-status-unpublished">
-                                                        Unpublished
-                                                    </span>
-                                                )}
-                                            </td>
+                                                </td>
 
-                                            <td>
-                                                <div className="experience-actions">
-
-                                                    {experience.isPublishedWithPermission ? (
-                                                        <button
-                                                            className="unpublish-button"
-                                                            onClick={() =>
-                                                                handleUnpublish(
-                                                                    experience.experienceId
-                                                                )
-                                                            }
-                                                        >
-                                                            Unpublish
-                                                        </button>
-                                                    ) : (
-                                                        <button
-                                                            className="publish-button"
-                                                            onClick={() =>
-                                                                handlePublish(
-                                                                    experience.experienceId
-                                                                )
-                                                            }
-                                                        >
-                                                            Publish
-                                                        </button>
-                                                    )}
-
-                                                    <button
-                                                        className="delete-experience-button"
-                                                        onClick={() =>
-                                                            handleDelete(
-                                                                experience.experienceId
-                                                            )
+                                                <td>
+                                                    <div className="experience-text">
+                                                        {
+                                                            experience.experienceText
                                                         }
-                                                    >
-                                                        Delete
-                                                    </button>
+                                                    </div>
+                                                </td>
 
-                                                </div>
-                                            </td>
+                                                <td>
+                                                    {experience.isPublishedWithPermission ? (
+                                                        <span className="experience-status-published">
+                                                            Published
+                                                        </span>
+                                                    ) : (
+                                                        <span className="experience-status-unpublished">
+                                                            Unpublished
+                                                        </span>
+                                                    )}
+                                                </td>
 
-                                        </tr>
-                                    )
-                                )}
+                                                <td>
+                                                    <div className="experience-actions">
 
-                            </tbody>
+                                                        {experience.isPublishedWithPermission ? (
+                                                            <button
+                                                                className="unpublish-button"
+                                                                onClick={() =>
+                                                                    handleUnpublish(
+                                                                        experience.experienceId
+                                                                    )
+                                                                }
+                                                            >
+                                                                Unpublish
+                                                            </button>
+                                                        ) : (
+                                                            <button
+                                                                className="publish-button"
+                                                                onClick={() =>
+                                                                    handlePublish(
+                                                                        experience.experienceId
+                                                                    )
+                                                                }
+                                                            >
+                                                                Publish
+                                                            </button>
+                                                        )}
 
-                        </table>
+                                                        <button
+                                                            className="delete-experience-button"
+                                                            onClick={() =>
+                                                                handleDelete(
+                                                                    experience.experienceId
+                                                                )
+                                                            }
+                                                        >
+                                                            Delete
+                                                        </button>
+
+                                                    </div>
+                                                </td>
+
+                                            </tr>
+                                        )
+                                    )}
+
+                                </tbody>
+
+                            </table>
+
+                        </div>
 
                         <div className="pagination">
 

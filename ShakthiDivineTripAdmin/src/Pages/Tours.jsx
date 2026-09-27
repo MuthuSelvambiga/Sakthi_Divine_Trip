@@ -196,7 +196,7 @@ function Tours() {
                                         <td>
                                             <div className="tour-location">
                                                 <span className="location-icon">
-                                                    ●
+
                                                 </span>
                                                 {tour.location}
                                             </div>
