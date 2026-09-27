@@ -41,31 +41,31 @@ function TourForm() {
                 console.log("Token exists:", !!token);
 
                 if (!token) {
-                    throw new Error("Authentication token not found. Please login again.");
+                    throw new Error(
+                        "No login token found. Please logout and login again."
+                    );
                 }
 
-                const response = await fetch(
-                    `${API_BASE_URL}/Tours/${id}`,
-                    {
-                        method: "GET",
-                        headers: {
-                            "Accept": "application/json",
-                            "Authorization": `Bearer ${token}`
-                        },
-                        cache: "no-store"
-                    }
-                );
+                const url = `${API_BASE_URL}/Tours/${id}`;
 
-                console.log("Tour API status:", response.status);
-                console.log("Tour API status text:", response.statusText);
+                const response = await fetch(url, {
+                    method: "GET",
+                    headers: {
+                        "Accept": "application/json",
+                        "Authorization": `Bearer ${token}`
+                    },
+                    cache: "no-store"
+                });
 
                 const responseText = await response.text();
 
+                console.log("Tour API status:", response.status);
+                console.log("Tour API status text:", response.statusText);
                 console.log("Tour API response:", responseText);
 
                 if (!response.ok) {
                     throw new Error(
-                        `Failed to load tour. Status: ${response.status}. ${responseText}`
+                        `Tour API failed: ${response.status} ${response.statusText}`
                     );
                 }
 
@@ -73,38 +73,63 @@ function TourForm() {
                     throw new Error("Tour API returned an empty response.");
                 }
 
-                const tour = JSON.parse(responseText);
+                const result = JSON.parse(responseText);
 
-                console.log("Parsed tour data:", tour);
+                console.log("Parsed response:", result);
+
+                // Support both direct API responses and responses wrapped in { data: ... }.
+                // Also support camelCase and PascalCase property names.
+                const tour = result?.data ?? result;
 
                 setFormData({
-                    categoryId: tour.categoryId ?? "",
-                    tourName: tour.tourName ?? "",
-                    location: tour.location ?? "",
-                    description: tour.description ?? "",
+                    categoryId: tour.categoryId ?? tour.CategoryId ?? "",
+                    tourName: tour.tourName ?? tour.TourName ?? "",
+                    location: tour.location ?? tour.Location ?? "",
+                    description: tour.description ?? tour.Description ?? "",
 
-                    // HTML date input needs YYYY-MM-DD
                     startDate: tour.startDate
                         ? String(tour.startDate).substring(0, 10)
-                        : "",
+                        : tour.StartDate
+                            ? String(tour.StartDate).substring(0, 10)
+                            : "",
 
                     endDate: tour.endDate
                         ? String(tour.endDate).substring(0, 10)
-                        : "",
+                        : tour.EndDate
+                            ? String(tour.EndDate).substring(0, 10)
+                            : "",
 
-                    durationDays: tour.durationDays ?? "",
-                    price: tour.price ?? "",
-                    availableSeats: tour.availableSeats ?? "",
-                    coverImage: tour.coverImage ?? "",
-                    earlyBirdPrice: tour.earlyBirdPrice ?? "",
-                    earlyBirdLimit: tour.earlyBirdLimit ?? "",
-                    isEarlyBirdActive: tour.isEarlyBirdActive ?? false
+                    durationDays:
+                        tour.durationDays ?? tour.DurationDays ?? "",
+
+                    price:
+                        tour.price ?? tour.Price ?? "",
+
+                    availableSeats:
+                        tour.availableSeats ?? tour.AvailableSeats ?? "",
+
+                    coverImage:
+                        tour.coverImage ?? tour.CoverImage ?? "",
+
+                    earlyBirdPrice:
+                        tour.earlyBirdPrice ?? tour.EarlyBirdPrice ?? "",
+
+                    earlyBirdLimit:
+                        tour.earlyBirdLimit ?? tour.EarlyBirdLimit ?? "",
+
+                    isEarlyBirdActive:
+                        tour.isEarlyBirdActive ??
+                        tour.IsEarlyBirdActive ??
+                        false
                 });
 
                 console.log("Tour form populated successfully.");
             } catch (error) {
                 console.error("Load tour error:", error);
-                setError(error.message || "Unable to load tour.");
+
+                setError(
+                    error.message || "Unable to load tour."
+                );
             } finally {
                 setLoading(false);
             }
@@ -112,6 +137,7 @@ function TourForm() {
 
         loadTour();
     }, [id, isEditMode]);
+
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
 
@@ -249,6 +275,12 @@ function TourForm() {
             {error && (
                 <div className="error-message">
                     {error}
+                </div>
+            )}
+
+            {loading && (
+                <div className="error-message">
+                    Loading tour details...
                 </div>
             )}
 
