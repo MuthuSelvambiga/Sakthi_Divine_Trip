@@ -2192,7 +2192,7 @@ body {
   }
 }
 
-/* Fix form text visibility on mobile */
+/* Fix text visibility in Tour form */
 .tour-form input,
 .tour-form select,
 .tour-form textarea {
@@ -2205,21 +2205,19 @@ body {
 .tour-form input::placeholder,
 .tour-form textarea::placeholder {
   color: #777 !important;
+  -webkit-text-fill-color: #777 !important;
   opacity: 1 !important;
 }
 
-.tour-form select {
-  color: #222 !important;
-}
-
-.tour-form option {
+.tour-form select option {
   color: #222 !important;
   background-color: #fff !important;
 }
 
-.tour-form input:focus,
-.tour-form select:focus,
-.tour-form textarea:focus {
+.tour-form input:disabled,
+.tour-form select:disabled,
+.tour-form textarea:disabled {
   color: #222 !important;
   -webkit-text-fill-color: #222 !important;
+  opacity: 1 !important;
 }
