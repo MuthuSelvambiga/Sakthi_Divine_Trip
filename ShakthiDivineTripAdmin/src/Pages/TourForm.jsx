@@ -77,8 +77,6 @@ function TourForm() {
 
                 console.log("Parsed response:", result);
 
-                // Support both direct API responses and responses wrapped in { data: ... }.
-                // Also support camelCase and PascalCase property names.
                 const tour = result?.data ?? result;
 
                 setFormData({
